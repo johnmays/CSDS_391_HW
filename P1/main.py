@@ -3,16 +3,14 @@ import random
 
 import exceptions
 
-
-
 goalState = np.array([[0,1,2],[3,4,5],[6,7,8]])
 currentState = np.array([[0,1,2],[3,4,5],[6,7,8]])
 maxNodes = 1
 
-#Note that in this program, printouts of the state  as well as the argument for setting a state use characters to
-#represent pieces such as '2' for the 2 piece, and especially of note, 'b' for the blank piece.  However, in memory,
-#the puzzle is represented as a 2-dimensional integer array in which 0 represnts the blank piece, and 1 represents the
-#1 piece, etc.  It is simpler for the program that way.
+"""Note that in this program, printouts of the state  as well as the argument for setting a state use characters to
+represent pieces such as '2' for the 2 piece, and especially of note, 'b' for the blank piece.  However, in memory,
+the puzzle is represented as a 2-dimensional integer array in which 0 represnts the blank piece, and 1 represents the
+1 piece, etc.  It is simpler for the program that way."""
 
 def printState(): #prints the current puzzle state represented by characters
     print("Current State:")
@@ -236,20 +234,19 @@ class node():
             self.pathLength += 1
         return self.pathLength
 
-def solveAStar(heuristic):
-    initialNode = node()
-    initialNode.state = currentState
-    return AStar(initialNode)
-
 class priorityQueue():
     def __init__(self, heuristic):
         self.heuristic = heuristic
         self.queue = []
+        self.size = 0
 
     def pop(self):
+        if(self.size < 1):
+            raise exceptions.queueError
         if (self.heuristic == "h1"):
             maximumIndex = 0
             for i in range(len(self.queue)):
+                # comparing evaluation functions:
                 if self.queue[i].pathLength() + self.queue[i].state.heuristicOne() > \
                     self.queue[maximumIndex].pathLength() + self.queue[maximumIndex].state.heuristicOne():
                     maximumIndex = i
@@ -259,6 +256,7 @@ class priorityQueue():
         elif (self.heuristic == "h2"):
             maximumIndex = 0
             for i in range(len(self.queue)):
+                #comparing evaluation functions:
                 if self.queue[i].pathLength() + self.queue[i].state.heuristicTwo() > \
                     self.queue[maximumIndex].pathLength() + self.queue[maximumIndex].state.heuristicTwo():
                     maximumIndex = i
@@ -269,21 +267,21 @@ class priorityQueue():
 
     def insert(self, node):
         self.queue.append(node)
+        self.size += 1
 
-#def AStar(initialNode):
+def solveAStar(heuristic):
+    initialNode = node()
+    initialNode.state = currentState
+    frontier = priorityQueue(heuristic)
+    numNodes = 0
+    while priorityQueue.size > 0 & numNodes < maxNodes:
+        currentNode = priorityQueue.pop
+        numNodes += 1
 
 
 
 
-setState('123 4b5 678')
-#printState()
-randomizeState(16)
-#printState()
-newNode = node(currentState)
-print(newNode.state)
-move('up')
-newNode2 = node(currentState)
-newNode2.move = 'up'
-newNode2.parent = newNode
-print(newNode2.getPathLength())
+
+
+
 
