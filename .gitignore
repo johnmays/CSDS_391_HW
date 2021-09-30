@@ -7,7 +7,7 @@ pg.py
 **/.DS_Store
 
 # JetBrians
-.idea/*
+**/.idea/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
