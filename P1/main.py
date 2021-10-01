@@ -1,19 +1,15 @@
 import sys
-# import fileinput
 
 import numpy as np
 import random
 
 import exceptions
-# import interpreter
 
-global goal_state
 goal_state = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
-global current_state
 current_state = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
 global maximum_nodes
 
-random.seed(12)  # initializing Python's RNG
+random.seed(342)  # initializing Python's RNG
 
 
 def interpreter(filename):
@@ -344,7 +340,7 @@ class priority_queue:
                     minimum_index = i
             returnable = self.queue[minimum_index]
             del self.queue[minimum_index]
-            self.size -= self.size
+            self.size -= 1
             return returnable
         elif self.heuristic == "h2":
             minimum_index = 0
@@ -355,7 +351,7 @@ class priority_queue:
                     minimum_index = i
             returnable = self.queue[minimum_index]
             del self.queue[minimum_index]
-            self.size -= self.size
+            self.size -= 1
             return returnable
 
     def insert(self, node):
@@ -366,6 +362,31 @@ class priority_queue:
         self.queue = []
         self.size = 0
 
+class beam_priority_queue:
+    def __init__(self):
+        self.queue = []
+        self.size = 0
+
+    def pop(self):
+        if self.size < 1:
+            raise exceptions.queue_error
+        minimum_index = 0
+        for i in range(len(self.queue)):
+            # comparing evaluation functions:
+            if heuristic_one(self.queue[i]) < heuristic_one(self.queue[minimum_index]):
+                minimum_index = i
+        returnable = self.queue[minimum_index]
+        del self.queue[minimum_index]
+        self.size -= 1
+        return returnable
+
+    def insert(self, node):
+        self.queue.append(node)
+        self.size += 1
+
+    def clear(self):
+        self.queue = []
+        self.size = 0
 
 def check_for_success(node):
     if np.array_equal(node.state, goal_state):
@@ -422,7 +443,7 @@ def solve_a_star(heuristic):
 
 def solve_beam(k):
     root_node = node(current_state)
-    frontier = priority_queue("h1")
+    frontier = beam_priority_queue()
     frontier.insert(root_node)
     success = False
     num_nodes = 0
@@ -432,9 +453,15 @@ def solve_beam(k):
         return
 
     while (frontier.size > 0) & (num_nodes <= maximum_nodes) & (success == False):
-        starting_frontier_size = frontier.size
-        while starting_frontier_size > 0:
-            cur_node = frontier.pop()
+        # make a new queue and empty out the priority queue:
+        temp_queue_1 = []
+        k_temp = k
+        while (k_temp > 0) & (frontier.size > 0):
+            temp_queue_1.append(frontier.pop())
+            k_temp -= 1
+        children_added = 0
+        for cur_node in temp_queue_1:
+            children_added = 0
             for moves in ['up', 'down', 'left', 'right']:
                 child_node = node(cur_node.state)
                 try:
@@ -446,32 +473,27 @@ def solve_beam(k):
                         return
                     frontier.insert(child_node)
                     num_nodes += 1
-                    if num_nodes > maximum_nodes:
+                    if num_nodes > maximum_nodes-1:
                         raise exceptions.node_error
+                    children_added += 1
                 except exceptions.move_impossible_error:
                     pass
-            starting_frontier_size -= 1
-        # none of the new children were the solution, now we must refine the queue
+        # none of the new children were the solution, now we must add the parents back:
+        for cur_node in temp_queue_1:
+            frontier.insert(cur_node)
+        # and then refine it with children and parents both in:
         k_temp = k
-        temp_queue = []
+        temp_queue_2 = []
         # gather k of the best entries from frontier
         while (k_temp > 0) & (frontier.size > 0):
-            temp_queue.append(frontier.pop())
+            temp_queue_2.append(frontier.pop())
             k_temp -= 1
         # get rid of all of the extra nodes in frontier:
         frontier.clear()
         # insert the k nodes back in
-        for nodes in temp_queue:
-            frontier.insert(nodes)
+        for cur_node in temp_queue_2:
+            frontier.insert(cur_node)
 
-    if not success:
-        print("FAILURE")  # FAIL prints
-        if frontier.size <= 0:
-            print("Frontier was depleted.")
-        print("Frontier Size:")
-        print(frontier.size)
-        print("numNodes:")
-        print(num_nodes)
 
 
 """
@@ -513,5 +535,5 @@ print(test_queue.pop().state)
 
 
 if __name__ == '__main__':
-    interpreter(sys.argv[1])
-    # interpreter("P1_jkm100_test_file.txt")
+    # interpreter(sys.argv[1])
+    interpreter("P1_jkm100_test_file.txt")

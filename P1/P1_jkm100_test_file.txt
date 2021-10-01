@@ -1,10 +1,18 @@
 setState b12 345 678
 move down
-randomizeState 12
+move right
+move down
+move left
+move left
 printState
-maxNodes 5000
-solve A-star h2
-randomizeState 4
+
+maxNodes 300
+randomizeState 6
 printState
-solve beam 3
+solve A-star h1
+
+randomizeState 5
+printState
+solve beam 14
+
 
