@@ -4,61 +4,100 @@ import sys
 import numpy as np
 import random
 
-from numpy import ndarray
-
 import exceptions
-import interpreter
-
+# import interpreter
 
 global goal_state
-goal_state = np.array([[0,1,2],[3,4,5],[6,7,8]])
+goal_state = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
 global current_state
-current_state = np.array([[0,1,2],[3,4,5],[6,7,8]])
+current_state = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
 global maximum_nodes
 
-"""Note that in this program, printouts of the state  as well as the argument for setting a state use characters to
-represent pieces such as '2' for the 2 piece, and especially of note, 'b' for the blank piece.  However, in memory,
-the puzzle is represented as a 2-dimensional integer array in which 0 represnts the blank piece, and 1 represents the
-1 piece, etc.  It is simpler for the program that way."""
-
-#if __name__ == "__main__":
-#    main()
-
-#def main():
-#    interpreter.interpreter(sys.argv[1])
+random.seed(12)  # initializing Python's RNG
 
 
-def print_state():  #prints the current puzzle state represented by characters
+def interpreter(filename):
+    # filename = "P1-test.txt"
+    command_file = open(filename, 'r')
+    commands = command_file.readlines()  # creates a list of the individual lines of the .txt file
+    # Trying to see if it matched a command in main():
+    for command in commands:
+        if len(command) > 1:
+            command_plus_args = command.split()  # splits the given command into word strings
+            if command_plus_args[0] == "move":
+                if len(command_plus_args) > 2:
+                    raise exceptions.argument_number_error
+                try:
+                    move(command_plus_args[1])
+                except exceptions.move_impossible_error:
+                    print("this move was not accepted")
+                    pass
+            elif command_plus_args[0] == "setState":
+                if len(command_plus_args) > 4:
+                    raise exceptions.argument_number_error
+                state_string = command_plus_args[1] + " " + command_plus_args[2] + " " + command_plus_args[3]
+                set_state(state_string)
+            elif command_plus_args[0] == "solve":
+                if len(command_plus_args) > 3:
+                    raise exceptions.argument_number_error
+                if command_plus_args[1] == "A-star":
+                    heuristic = command_plus_args[2]
+                    solve_a_star(heuristic)
+                elif command_plus_args[1] == "beam":
+                    k = int(command_plus_args[2])
+                    solve_beam(k)
+                else:
+                    raise exceptions.command_error
+            elif command_plus_args[0] == "maxNodes":
+                if len(command_plus_args) > 2:
+                    raise exceptions.argument_number_error
+                n = int(command_plus_args[1])
+                max_nodes(n)
+            elif command_plus_args[0] == "randomizeState":
+                if len(command_plus_args) > 2:
+                    raise exceptions.argument_number_error
+                n = int(command_plus_args[1])
+                randomize_state(n)
+            elif command_plus_args[0] == "printState":
+                if len(command_plus_args) > 2:
+                    raise exceptions.argument_number_error
+                print_state()
+            else:
+                raise exceptions.command_error
+
+
+def print_state():  # prints the current puzzle state represented by characters
     print("Current State:")
-    #print(current_state)
-    currentStateReadable = np.array([['b','b','b'],['b','b','b'],['b','b','b']])
-    i=0
+    # print(current_state)
+    currentStateReadable = np.array([['b', 'b', 'b'], ['b', 'b', 'b'], ['b', 'b', 'b']])
+    i = 0
     while i < current_state[0].size:
         j = 0
         while j < current_state[:, 0].size:
             currentStateReadable[i][j] = int_to_string_representation(current_state[i][j])
-            j+=1
-        i+=1
+            j += 1
+        i += 1
     print(currentStateReadable)
+
 
 def move(direction):
     """This function acts on the current_state variable and either does not move if the move is impossible, or does
         a move depending on the direction string variable: up, down, left, or right."""
     """If the move is completed, it returns 1.  If not, then it returns 0."""
     global current_state
-    blankPosition = (0,0)
-    i=0
+    blankPosition = (0, 0)
+    i = 0
     while i < current_state[0].size:  # this finds the blank piece's position
         j = 0
         while j < current_state[:, 0].size:
             if current_state[i][j] == 0:
-                blankPosition = (i,j)
-            j+=1
-        i+=1
+                blankPosition = (i, j)
+            j += 1
+        i += 1
 
     if direction == 'up':
         if blankPosition[0] == 0:  # this means that a move up is not possible.
-            raise exceptions.move_impossible
+            raise exceptions.move_impossible_error
         else:
             switchValue = current_state[blankPosition[0] - 1][blankPosition[1]]
             current_state[blankPosition[0] - 1][blankPosition[1]] = 0
@@ -66,7 +105,7 @@ def move(direction):
             return current_state
     if direction == 'down':
         if blankPosition[0] == 2:  # this means that a move down is not possible.
-            raise exceptions.move_impossible
+            raise exceptions.move_impossible_error
         else:
             switchValue = current_state[blankPosition[0] + 1][blankPosition[1]]
             current_state[blankPosition[0] + 1][blankPosition[1]] = 0
@@ -74,7 +113,7 @@ def move(direction):
             return current_state
     if direction == 'left':
         if blankPosition[1] == 0:  # this means that a move left is not possible.
-            raise exceptions.move_impossible
+            raise exceptions.move_impossible_error
         else:
             switchValue = current_state[blankPosition[0]][blankPosition[1] - 1]
             current_state[blankPosition[0]][blankPosition[1] - 1] = 0
@@ -82,61 +121,62 @@ def move(direction):
             return current_state
     if direction == 'right':
         if blankPosition[1] == 2:  # this means that a move right is not possible.
-            raise exceptions.move_impossible
+            raise exceptions.move_impossible_error
         else:
             switchValue = current_state[blankPosition[0]][blankPosition[1] + 1]
             current_state[blankPosition[0]][blankPosition[1] + 1] = 0
             current_state[blankPosition[0]][blankPosition[1]] = switchValue
             return current_state
 
+
 def move_node(direction, node):
-    """This function is very similar to the first move() function, but instead of acting on the current_state
-     variable, takes the state from a particular node, acts on it, and either does not move if the move is
+    """This function is extremely similar to the move() function, but instead of acting on the current_state
+     variable, it takes the state from the node parameter, acts on it, and either does not move if the move is
      impossible, or completes the move and returns that state."""
-    """if it cannot complete the move, it returns None"""
-    nodeState = node.state
-    blankPosition = (0,0)
-    i=0
-    while i < nodeState[0].size: # this finds the blank piece's position
+    """if it cannot complete the move, it raises an error"""
+    node_state = np.copy(node.state)
+    blank_position = (0, 0)
+    i = 0
+    while i < node_state[0].size:  # this finds the blank piece's position
         j = 0
-        while j < nodeState[:,0].size:
-            if nodeState[i][j] == 0:
-                blankPosition = (i,j)
-            j+=1
-        i+=1
+        while j < node_state[:, 0].size:
+            if node_state[i][j] == 0:
+                blank_position = (i, j)
+            j += 1
+        i += 1
 
     if direction == 'up':
-        if blankPosition[0] == 0: # this means that a move up is not possible.
-            return None
+        if blank_position[0] == 0:  # this means that a move up is not possible.
+            raise exceptions.move_impossible_error
         else:
-            switchValue = nodeState[blankPosition[0]-1][blankPosition[1]]
-            nodeState[blankPosition[0] - 1][blankPosition[1]] = 0
-            nodeState[blankPosition[0]][blankPosition[1]] = switchValue
-            return nodeState
+            switch_value = node_state[blank_position[0] - 1][blank_position[1]]
+            node_state[blank_position[0] - 1][blank_position[1]] = 0
+            node_state[blank_position[0]][blank_position[1]] = switch_value
+            return node_state
     if direction == 'down':
-        if blankPosition[0] == 2:# this means that a move down is not possible.
-            return None
+        if blank_position[0] == 2:  # this means that a move down is not possible.
+            raise exceptions.move_impossible_error
         else:
-            switchValue = nodeState[blankPosition[0] + 1][blankPosition[1]]
-            nodeState[blankPosition[0] + 1][blankPosition[1]] = 0
-            nodeState[blankPosition[0]][blankPosition[1]] = switchValue
-            return nodeState
+            switch_value = node_state[blank_position[0] + 1][blank_position[1]]
+            node_state[blank_position[0] + 1][blank_position[1]] = 0
+            node_state[blank_position[0]][blank_position[1]] = switch_value
+            return node_state
     if direction == 'left':
-        if blankPosition[1] == 0:# this means that a move left is not possible.
-            return None
+        if blank_position[1] == 0:  # this means that a move left is not possible.
+            raise exceptions.move_impossible_error
         else:
-            switchValue = nodeState[blankPosition[0]][blankPosition[1] - 1]
-            nodeState[blankPosition[0]][blankPosition[1] - 1] = 0
-            nodeState[blankPosition[0]][blankPosition[1]] = switchValue
-            return nodeState
+            switch_value = node_state[blank_position[0]][blank_position[1] - 1]
+            node_state[blank_position[0]][blank_position[1] - 1] = 0
+            node_state[blank_position[0]][blank_position[1]] = switch_value
+            return node_state
     if direction == 'right':
-        if blankPosition[1] == 2:# this means that a move right is not possible.
-            return None
+        if blank_position[1] == 2:  # this means that a move right is not possible.
+            raise exceptions.move_impossible_error
         else:
-            switchValue = nodeState[blankPosition[0]][blankPosition[1] + 1]
-            nodeState[blankPosition[0]][blankPosition[1] + 1] = 0
-            nodeState[blankPosition[0]][blankPosition[1]] = switchValue
-            return nodeState
+            switch_value = node_state[blank_position[0]][blank_position[1] + 1]
+            node_state[blank_position[0]][blank_position[1] + 1] = 0
+            node_state[blank_position[0]][blank_position[1]] = switch_value
+            return node_state
 
 
 def int_to_string_representation(integer):
@@ -168,56 +208,56 @@ def string_representation_to_int(string):
             return 8
 
 
-def setState(stateString):
-    current_state[0][0] = string_representation_to_int(stateString[0])
-    current_state[0][1] = string_representation_to_int(stateString[1])
-    current_state[0][2] = string_representation_to_int(stateString[2])
+def set_state(state_string):
+    current_state[0][0] = string_representation_to_int(state_string[0])
+    current_state[0][1] = string_representation_to_int(state_string[1])
+    current_state[0][2] = string_representation_to_int(state_string[2])
 
-    current_state[1][0] = string_representation_to_int(stateString[4])
-    current_state[1][1] = string_representation_to_int(stateString[5])
-    current_state[1][2] = string_representation_to_int(stateString[6])
+    current_state[1][0] = string_representation_to_int(state_string[4])
+    current_state[1][1] = string_representation_to_int(state_string[5])
+    current_state[1][2] = string_representation_to_int(state_string[6])
 
-    current_state[2][0] = string_representation_to_int(stateString[8])
-    current_state[2][1] = string_representation_to_int(stateString[9])
-    current_state[2][2] = string_representation_to_int(stateString[10])
+    current_state[2][0] = string_representation_to_int(state_string[8])
+    current_state[2][1] = string_representation_to_int(state_string[9])
+    current_state[2][2] = string_representation_to_int(state_string[10])
 
 
 def randomize_state(n):
     """This takes the goal state, makes n number of random moves from it, and stores it in the current_state variable."""
     current_state = goal_state
-    i=0
+    i = 0
     while i < n:
-        randomValue = random.random() #float in between 0.0 and 1.0
+        randomValue = random.random()  # float in between 0.0 and 1.0
         worked = 0
         if (randomValue >= 0.0) & (randomValue <= 0.25):
             try:
                 move('up')
-                worked +=1
-            except exceptions.move_impossible:
+                worked += 1
+            except exceptions.move_impossible_error:
                 pass
         elif (randomValue > 0.25) & (randomValue <= 0.50):
             try:
                 move('down')
-                worked +=1
-            except exceptions.move_impossible:
+                worked += 1
+            except exceptions.move_impossible_error:
                 pass
         elif (randomValue > 0.50) & (randomValue <= 0.75):
             try:
                 move('left')
-                worked +=1
-            except exceptions.move_impossible:
+                worked += 1
+            except exceptions.move_impossible_error:
                 pass
         elif (randomValue > 0.75) & (randomValue <= 1.0):
             try:
                 move('right')
-                worked +=1
-            except exceptions.move_impossible:
+                worked += 1
+            except exceptions.move_impossible_error:
                 pass
 
         # This ensures that n number of actual moves as opposed to attempted moves take place by only
         # incrementing i when the move() function executes successfully:
         if worked != 0:
-            i+=1
+            i += 1
 
 
 def max_nodes(n):
@@ -225,60 +265,65 @@ def max_nodes(n):
     maximum_nodes = n
 
 
-def heuristic_one():
-    """this function operates on the current state matrix variable and returns the number of misplaced tiles"""
-    numMisplaced = 0
+def heuristic_one(node):
+    """this function looks at node.state and returns the number of misplaced tiles"""
+    cur_state = np.copy(node.state)
+    num_misplaced = 0
     i = 0
-    while i < current_state[0].size:
+    while i < cur_state[0].size:
         j = 0
-        while j < current_state[:, 0].size:
-            if current_state[i][j] != goal_state[i][j]:
-                numMisplaced += 1
+        while j < cur_state[:, 0].size:
+            if cur_state[i][j] != goal_state[i][j]:
+                num_misplaced += 1
             j += 1
         i += 1
-    return numMisplaced
+    return num_misplaced
 
 
-def heuristic_two():
-    """this function operates on the current state matrix variable and returns the sum of the distances of tiles'
+def heuristic_two(node):
+    """this function looks at node.state and returns the sum of the distances of tiles'
     positions in the current state from their positions in the goal state."""
 
-    """goalStateCoordinates is an array containing the coordinates of the tiles in the goal state matrix.  So, for
-    example, goalStateCoordinates(4) returns the i,jth coordinates of tile 4 in the goal state: (1,1)."""
-    goalStateCoordinates = [(0,0),(0,1),(0,2),(1,0),(1,1),(1,2),(2,0),(2,1),(2,2)]
-    sumOfDistances = 0
+    """goal_state_coordinates is an array containing the coordinates of the tiles in the goal state matrix.  So, for
+    example, goal_state_coordinates(4) returns the i,jth coordinates of tile 4 in the goal state: (1,1)."""
+    goal_state_coordinates = [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
+    sum_of_distances = 0
+
+    cur_state = np.copy(node.state)
     i = 0
-    while i < current_state[0].size:
+    while i < cur_state[0].size:
         j = 0
-        while j < current_state[:, 0].size:
-            #this calculates the Manhattan distance, not the Euclidean distance, because it was unspecified.
-            sumOfDistances += ((abs(i - goalStateCoordinates[current_state[i][j]][0])) + (abs(j - goalStateCoordinates[current_state[i][j]][1])))
+        while j < cur_state[:, 0].size:
+            # this calculates the Manhattan distance, not the Euclidean distance, because it was unspecified.
+            sum_of_distances += ((abs(i - goal_state_coordinates[current_state[i][j]][0])) + (
+                abs(j - goal_state_coordinates[current_state[i][j]][1])))
             j += 1
         i += 1
-    return sumOfDistances
-
+    return sum_of_distances
 
 class node:
     def __init__(self, state):
         self.parent = None
-        self.move = None #the move that took it from its parent to its current state
+        self.move = None  # the move that took it from its parent to its current state
         self.state = np.copy(state)
-        print("new node intialized with state:")
-        print(state)
         self.pathLength = None
-    def getPathLength(self):
-        if self.parent == None: #check and see if this is the initial state node
+
+    def get_path_length(self):
+        if self.parent == None:  # check and see if this is the initial state node
             return 0
-        if self.pathLength != None: #check and see if we have run this before
+        if self.pathLength != None:  # check and see if we have run this before
             return self.pathLength
-        currentNode = self #trace back and see how many nodes there are until we get to the initial state node
+        cur_node = self  # trace back and see how many nodes there are until we get to the initial state node
         self.pathLength = 0
-        while currentNode.parent != None:
-            currentNode=currentNode.parent
+        while cur_node.parent != None:
+            cur_node = cur_node.parent
             self.pathLength += 1
         return self.pathLength
-    #def getState(self):
+
+    # def get_state(self):
     #    return self.state
+    # def set_state(self, state):
+    #    self.state = state
 
 
 class priority_queue:
@@ -288,69 +333,185 @@ class priority_queue:
         self.size = 0
 
     def pop(self):
-        if(self.size < 1):
+        if self.size < 1:
             raise exceptions.queue_error
-        if (self.heuristic == "h1"):
-            maximumIndex = 0
+        if self.heuristic == "h1":
+            minimum_index = 0
             for i in range(len(self.queue)):
                 # comparing evaluation functions:
-                if self.queue[i].pathLength() + self.queue[i].state.heuristic_one() > \
-                    self.queue[maximumIndex].pathLength() + self.queue[maximumIndex].state.heuristic_one():
-                    maximumIndex = i
-            returnable = self.queue[maximumIndex]
-            del self.queue[maximumIndex]
+                if self.queue[i].get_path_length() + heuristic_one(self.queue[i]) < \
+                        self.queue[minimum_index].get_path_length() + heuristic_one(self.queue[minimum_index]):
+                    minimum_index = i
+            returnable = self.queue[minimum_index]
+            del self.queue[minimum_index]
+            self.size -= self.size
             return returnable
-        elif (self.heuristic == "h2"):
-            maximumIndex = 0
+        elif self.heuristic == "h2":
+            minimum_index = 0
             for i in range(len(self.queue)):
-                #comparing evaluation functions:
-                if self.queue[i].pathLength() + self.queue[i].state.heuristic_two() > \
-                    self.queue[maximumIndex].pathLength() + self.queue[maximumIndex].state.heuristic_two():
-                    maximumIndex = i
-            returnable = self.queue[maximumIndex]
-            del self.queue[maximumIndex]
+                # comparing evaluation functions:
+                if self.queue[i].get_path_length() + heuristic_two(self.queue[i]) < \
+                        self.queue[minimum_index].get_path_length() + heuristic_two(self.queue[minimum_index]):
+                    minimum_index = i
+            returnable = self.queue[minimum_index]
+            del self.queue[minimum_index]
+            self.size -= self.size
             return returnable
-
 
     def insert(self, node):
         self.queue.append(node)
         self.size += 1
 
+    def clear(self):
+        self.queue = []
+        self.size = 0
+
+
+def check_for_success(node):
+    if np.array_equal(node.state, goal_state):
+        print("SUCCESS: ")  # SUCCESS prints
+        print("Number of moves needed to find solution: " + repr(node.get_path_length()))
+        print("Solution: ")
+        moves = []
+        while node.parent is not None:
+            moves.append(node.move)
+            node = node.parent
+        moves = moves[::-1]  # reversing array
+        for move in moves:
+            print(move)
+        return True
+    else:
+        return False
+
 
 def solve_a_star(heuristic):
-    initialNode = node()
-    initialNode.state = current_state
+    root_node = node(current_state)
     frontier = priority_queue(heuristic)
-    numNodes = 0
-    while priority_queue.size > 0 & numNodes < max_nodes:
-        current_node = priority_queue.pop
-        numNodes += 1
+    frontier.insert(root_node)
+    num_nodes = 0
+    success = False
+    while (frontier.size > 0) & (num_nodes <= maximum_nodes) & (success == False):
+        # pop a node from the frontier:
+        cur_node = frontier.pop()
 
+        # expand frontier:
+        for moves in ['up', 'down', 'left', 'right']:
+            child_node = node(cur_node.state)
+            try:
+                child_node.state = np.copy(move_node(moves, cur_node))
+                child_node.move = moves
+                child_node.parent = cur_node
+                success = check_for_success(child_node)
+                if success:
+                    return
+                frontier.insert(child_node)
+                num_nodes += 1
+                if num_nodes > maximum_nodes:
+                    raise exceptions.node_error
+            except exceptions.move_impossible_error:
+                pass
+    if not success:
+        print("FAILURE")  # FAIL prints
+        if frontier.size <= 0:
+            print("Frontier was depleted.")
+        print("Frontier Size:")
+        print(frontier.size)
+        print("numNodes:")
+        print(num_nodes)
+
+
+def solve_beam(k):
+    root_node = node(current_state)
+    frontier = priority_queue("h1")
+    frontier.insert(root_node)
+    success = False
+    num_nodes = 0
+
+    success = check_for_success(root_node)  # checking the root node first
+    if success:
+        return
+
+    while (frontier.size > 0) & (num_nodes <= maximum_nodes) & (success == False):
+        starting_frontier_size = frontier.size
+        while starting_frontier_size > 0:
+            cur_node = frontier.pop()
+            for moves in ['up', 'down', 'left', 'right']:
+                child_node = node(cur_node.state)
+                try:
+                    child_node.state = np.copy(move_node(moves, cur_node))
+                    child_node.move = moves
+                    child_node.parent = cur_node
+                    success = check_for_success(child_node)
+                    if success:
+                        return
+                    frontier.insert(child_node)
+                    num_nodes += 1
+                    if num_nodes > maximum_nodes:
+                        raise exceptions.node_error
+                except exceptions.move_impossible_error:
+                    pass
+            starting_frontier_size -= 1
+        # none of the new children were the solution, now we must refine the queue
+        k_temp = k
+        temp_queue = []
+        # gather k of the best entries from frontier
+        while (k_temp > 0) & (frontier.size > 0):
+            temp_queue.append(frontier.pop())
+            k_temp -= 1
+        # get rid of all of the extra nodes in frontier:
+        frontier.clear()
+        # insert the k nodes back in
+        for nodes in temp_queue:
+            frontier.insert(nodes)
+
+    if not success:
+        print("FAILURE")  # FAIL prints
+        if frontier.size <= 0:
+            print("Frontier was depleted.")
+        print("Frontier Size:")
+        print(frontier.size)
+        print("numNodes:")
+        print(num_nodes)
+
+
+"""
+print("starting state:")
 print_state()
-new_node = node(current_state)
+print("")
+randomize_state(5)
+# current_state = np.array([[1, 4, 2], [6, 3, 5], [0, 7, 8]])
+max_nodes(1000)
+print("Max nodes: " + repr(maximum_nodes))
+print("post-randomization:")
+print_state()
+print("")
+solve_beam(12)
+"""
 
+
+"""
+print("testing priority queue:")
+test_queue = priority_queue("h2")
 move('down')
-
+new_node_1 = node(current_state)
+test_queue.insert(new_node_1)
+print_state()
+move('down')
 print_state()
 new_node_2 = node(current_state)
-new_node_2.parent = new_node
-new_node_2.move = 'down'
-
-move('right')
-
-print_state()
-new_node_3 = node(current_state)
-new_node_3.parent = new_node_2
-new_node_3.move = 'right'
-
-print('pause')
-print(new_node_2.state)
+new_node_2.parent=new_node_1
+test_queue.insert(new_node_2)
+print(test_queue.pop().state)
+#print(test_queue.queue[1].state)
+"""
 
 
+# def if __name__ == '__main__':
+#interpreter()
+
+# interpreter("P1-test.txt")
 
 
-
-
-
-
-
+if __name__ == '__main__':
+    interpreter(sys.argv[1])
+    # interpreter("P1_jkm100_test_file.txt")
