@@ -7,9 +7,9 @@ import exceptions
 
 goal_state = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
 current_state = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
-global maximum_nodes
+maximum_nodes = 0
 
-random.seed(342)  # initializing Python's RNG
+random.seed(142)  # initializing Python's RNG  #342
 
 
 def interpreter(filename):
@@ -18,7 +18,7 @@ def interpreter(filename):
     commands = command_file.readlines()  # creates a list of the individual lines of the .txt file
     # Trying to see if it matched a command in main():
     for command in commands:
-        if len(command) > 1:
+        if (len(command) > 1) & (command[0] != "#"):
             command_plus_args = command.split()  # splits the given command into word strings
             if command_plus_args[0] == "move":
                 if len(command_plus_args) > 2:
@@ -74,6 +74,7 @@ def print_state():  # prints the current puzzle state represented by characters
             j += 1
         i += 1
     print(currentStateReadable)
+    print(" ")
 
 
 def move(direction):
@@ -302,19 +303,19 @@ class node:
         self.parent = None
         self.move = None  # the move that took it from its parent to its current state
         self.state = np.copy(state)
-        self.pathLength = None
+        self.path_length = None
 
     def get_path_length(self):
         if self.parent == None:  # check and see if this is the initial state node
             return 0
-        if self.pathLength != None:  # check and see if we have run this before
-            return self.pathLength
+        if self.path_length != None:  # check and see if we have run this before
+            return self.path_length
         cur_node = self  # trace back and see how many nodes there are until we get to the initial state node
-        self.pathLength = 0
+        self.path_length = 0
         while cur_node.parent != None:
             cur_node = cur_node.parent
-            self.pathLength += 1
-        return self.pathLength
+            self.path_length += 1
+        return self.path_length
 
     # def get_state(self):
     #    return self.state
@@ -342,12 +343,12 @@ class priority_queue:
             del self.queue[minimum_index]
             self.size -= 1
             return returnable
-        elif self.heuristic == "h2":
+        if self.heuristic == "h2":
             minimum_index = 0
             for i in range(len(self.queue)):
                 # comparing evaluation functions:
-                if self.queue[i].get_path_length() + heuristic_two(self.queue[i]) < \
-                        self.queue[minimum_index].get_path_length() + heuristic_two(self.queue[minimum_index]):
+                if self.queue[i].get_path_length() + heuristic_one(self.queue[i]) < \
+                        self.queue[minimum_index].get_path_length() + heuristic_one(self.queue[minimum_index]):
                     minimum_index = i
             returnable = self.queue[minimum_index]
             del self.queue[minimum_index]
@@ -361,6 +362,7 @@ class priority_queue:
     def clear(self):
         self.queue = []
         self.size = 0
+
 
 class beam_priority_queue:
     def __init__(self):
@@ -388,7 +390,8 @@ class beam_priority_queue:
         self.queue = []
         self.size = 0
 
-def check_for_success(node):
+
+def check_for_success_a_star(node):
     if np.array_equal(node.state, goal_state):
         print("SUCCESS: ")  # SUCCESS prints
         print("Number of moves needed to find solution: " + repr(node.get_path_length()))
@@ -398,8 +401,26 @@ def check_for_success(node):
             moves.append(node.move)
             node = node.parent
         moves = moves[::-1]  # reversing array
-        for move in moves:
-            print(move)
+        for cur_move in moves:
+            print(cur_move)
+        print(" ")
+        return True
+    else:
+        return False
+
+def check_for_success_beam(node):
+    if np.array_equal(node.state, goal_state):
+        print("SUCCESS: ")  # SUCCESS prints
+        print("Number of moves needed to find solution: " + repr(node.get_path_length()))
+        print("Solution: ")
+        moves = []
+        while node.parent is not None:
+            moves.append(node.move)
+            node = node.parent
+        moves = moves[::-1]  # reversing array
+        for cur_move in moves:
+            print(cur_move)
+        print(" ")
         return True
     else:
         return False
@@ -422,13 +443,16 @@ def solve_a_star(heuristic):
                 child_node.state = np.copy(move_node(moves, cur_node))
                 child_node.move = moves
                 child_node.parent = cur_node
-                success = check_for_success(child_node)
+                success = check_for_success_a_star(child_node)
                 if success:
                     return
                 frontier.insert(child_node)
                 num_nodes += 1
                 if num_nodes > maximum_nodes:
-                    raise exceptions.node_error
+                    # raise exceptions.node_error
+                    print("A* Failure: Maximum number of nodes surpassed")
+                    print(" ")
+                    return
             except exceptions.move_impossible_error:
                 pass
     if not success:
@@ -448,7 +472,7 @@ def solve_beam(k):
     success = False
     num_nodes = 0
 
-    success = check_for_success(root_node)  # checking the root node first
+    success = check_for_success_beam(root_node)  # checking the root node first
     if success:
         return
 
@@ -468,13 +492,16 @@ def solve_beam(k):
                     child_node.state = np.copy(move_node(moves, cur_node))
                     child_node.move = moves
                     child_node.parent = cur_node
-                    success = check_for_success(child_node)
+                    success = check_for_success_beam(child_node)
                     if success:
                         return
                     frontier.insert(child_node)
                     num_nodes += 1
                     if num_nodes > maximum_nodes-1:
-                        raise exceptions.node_error
+                        # raise exceptions.node_error
+                        print("BEAM FAILURE: Maximum number of nodes surpassed")
+                        print(" ")
+                        return
                     children_added += 1
                 except exceptions.move_impossible_error:
                     pass
@@ -495,45 +522,12 @@ def solve_beam(k):
             frontier.insert(cur_node)
 
 
-
-"""
-print("starting state:")
-print_state()
-print("")
-randomize_state(5)
-# current_state = np.array([[1, 4, 2], [6, 3, 5], [0, 7, 8]])
-max_nodes(1000)
-print("Max nodes: " + repr(maximum_nodes))
-print("post-randomization:")
-print_state()
-print("")
-solve_beam(12)
-"""
-
-
-"""
-print("testing priority queue:")
-test_queue = priority_queue("h2")
-move('down')
-new_node_1 = node(current_state)
-test_queue.insert(new_node_1)
-print_state()
-move('down')
-print_state()
-new_node_2 = node(current_state)
-new_node_2.parent=new_node_1
-test_queue.insert(new_node_2)
-print(test_queue.pop().state)
-#print(test_queue.queue[1].state)
-"""
-
-
-# def if __name__ == '__main__':
-#interpreter()
-
-# interpreter("P1-test.txt")
-
-
 if __name__ == '__main__':
-    # interpreter(sys.argv[1])
+    # interpreter()
+    # interpreter("P1-test.txt")
     interpreter("P1_jkm100_test_file.txt")
+
+# max_nodes(1000)
+# randomize_state(7)
+# print_state()
+# solve_beam(14)
