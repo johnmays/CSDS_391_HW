@@ -3,9 +3,11 @@ import sys
 import numpy as np
 import random
 
+from numpy import ndarray
+
 import exceptions
 
-goal_state = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
+goal_state= np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
 current_state = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
 maximum_nodes = 0
 
@@ -220,8 +222,9 @@ def set_state(state_string):
 
 
 def randomize_state(n):
-    """This takes the goal state, makes n number of random moves from it, and stores it in the current_state variable."""
-    current_state = goal_state
+    """This resets the global current_state variable to the goal and then makes n random successful moves on it."""
+    global current_state
+    current_state = np.copy(goal_state)
     i = 0
     while i < n:
         randomValue = random.random()  # float in between 0.0 and 1.0
@@ -292,11 +295,13 @@ def heuristic_two(node):
         j = 0
         while j < cur_state[:, 0].size:
             # this calculates the Manhattan distance, not the Euclidean distance, because it was unspecified.
-            sum_of_distances += ((abs(i - goal_state_coordinates[current_state[i][j]][0])) + (
-                abs(j - goal_state_coordinates[current_state[i][j]][1])))
+            if(i != 0) & (j != 0):
+                sum_of_distances += ((abs(i - goal_state_coordinates[current_state[i][j]][0])) + (
+                    abs(j - goal_state_coordinates[current_state[i][j]][1])))
             j += 1
         i += 1
     return sum_of_distances
+
 
 class node:
     def __init__(self, state):
@@ -323,7 +328,7 @@ class node:
     #    self.state = state
 
 
-class priority_queue:
+class a_star_priority_queue:
     def __init__(self, heuristic):
         self.heuristic = heuristic
         self.queue = []
@@ -332,28 +337,15 @@ class priority_queue:
     def pop(self):
         if self.size < 1:
             raise exceptions.queue_error
-        if self.heuristic == "h1":
-            minimum_index = 0
-            for i in range(len(self.queue)):
-                # comparing evaluation functions:
-                if self.queue[i].get_path_length() + heuristic_one(self.queue[i]) < \
-                        self.queue[minimum_index].get_path_length() + heuristic_one(self.queue[minimum_index]):
-                    minimum_index = i
-            returnable = self.queue[minimum_index]
-            del self.queue[minimum_index]
-            self.size -= 1
-            return returnable
-        if self.heuristic == "h2":
-            minimum_index = 0
-            for i in range(len(self.queue)):
-                # comparing evaluation functions:
-                if self.queue[i].get_path_length() + heuristic_one(self.queue[i]) < \
-                        self.queue[minimum_index].get_path_length() + heuristic_one(self.queue[minimum_index]):
-                    minimum_index = i
-            returnable = self.queue[minimum_index]
-            del self.queue[minimum_index]
-            self.size -= 1
-            return returnable
+        minimum_index = 0
+        for i in range(len(self.queue)):
+            # comparing evaluation functions:
+            if self.evaluation_function(self.queue[i]) < self.evaluation_function(self.queue[minimum_index]):
+                minimum_index = i
+        returnable = self.queue[minimum_index]
+        del self.queue[minimum_index]
+        self.size -= 1
+        return returnable
 
     def insert(self, node):
         self.queue.append(node)
@@ -362,6 +354,13 @@ class priority_queue:
     def clear(self):
         self.queue = []
         self.size = 0
+
+    def evaluation_function(self, node):
+        if self.heuristic == "h1":
+            return node.get_path_length() + heuristic_one(node)
+        if self.heuristic == "h2":
+            return node.get_path_length() + heuristic_two(node)
+
 
 
 class beam_priority_queue:
@@ -391,8 +390,13 @@ class beam_priority_queue:
         self.size = 0
 
 
-def check_for_success_a_star(node):
-    if np.array_equal(node.state, goal_state):
+def check_for_success_a_star(node, frontier):
+    if np.array_equal(node.state, goal_state):  # first, checking to see if this is a solution
+        # print("found a soln")
+        # print(repr(frontier.evaluation_function(node)))
+        # if frontier.size > 0:  # checking to see if shorter solutions are possible
+            # if node.get_path_length() > frontier.shortest_path():
+                # return False
         print("SUCCESS: ")  # SUCCESS prints
         print("Number of moves needed to find solution: " + repr(node.get_path_length()))
         print("Solution: ")
@@ -407,6 +411,7 @@ def check_for_success_a_star(node):
         return True
     else:
         return False
+
 
 def check_for_success_beam(node):
     if np.array_equal(node.state, goal_state):
@@ -428,10 +433,11 @@ def check_for_success_beam(node):
 
 def solve_a_star(heuristic):
     root_node = node(current_state)
-    frontier = priority_queue(heuristic)
+    frontier = a_star_priority_queue(heuristic)
     frontier.insert(root_node)
     num_nodes = 0
     success = False
+    success = check_for_success_a_star(root_node, frontier)
     while (frontier.size > 0) & (num_nodes <= maximum_nodes) & (success == False):
         # pop a node from the frontier:
         cur_node = frontier.pop()
@@ -443,7 +449,7 @@ def solve_a_star(heuristic):
                 child_node.state = np.copy(move_node(moves, cur_node))
                 child_node.move = moves
                 child_node.parent = cur_node
-                success = check_for_success_a_star(child_node)
+                success = check_for_success_a_star(child_node, frontier)
                 if success:
                     return
                 frontier.insert(child_node)
@@ -451,18 +457,13 @@ def solve_a_star(heuristic):
                 if num_nodes > maximum_nodes:
                     # raise exceptions.node_error
                     print("A* Failure: Maximum number of nodes surpassed")
+                    print(repr(frontier.evaluation_function(frontier.pop())))
                     print(" ")
                     return
             except exceptions.move_impossible_error:
                 pass
     if not success:
-        print("FAILURE")  # FAIL prints
-        if frontier.size <= 0:
-            print("Frontier was depleted.")
-        print("Frontier Size:")
-        print(frontier.size)
-        print("numNodes:")
-        print(num_nodes)
+        print("FAILURE")
 
 
 def solve_beam(k):
@@ -528,6 +529,7 @@ if __name__ == '__main__':
     interpreter("P1_jkm100_test_file.txt")
 
 # max_nodes(1000)
-# randomize_state(7)
+# randomize_state(9)
 # print_state()
-# solve_beam(14)
+# solve_beam(8)
+
