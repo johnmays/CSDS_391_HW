@@ -1,36 +1,36 @@
-setState b12 345 678
-# move down
-# move right
-# move down
-# move left
-# move left
-# printState
+setState 1b2 345 678
+printState
+move down
+move right
+move down
+move left
+move left
+move left
+printState
 
 maxNodes 1024
 
-randomizeState 6
+randomizeState 11
 printState
 solve A-star h1
 
-randomizeState 7
+randomizeState 10
 printState
 solve A-star h2
 
-randomizeState 5
+randomizeState 9
 printState
 solve beam 14
 
 maxNodes 20
-randomizeState 7
+randomizeState 11
 printState
 solve A-star h1
 
-# randomizeState 5
-# printState
-# solve beam 14
+maxNodes 70
+randomizeState 12
+printState
+solve beam 12
 
-# randomizeState 5
-# printState
-# solve beam 2
-
-
+printState
+solve beam 70

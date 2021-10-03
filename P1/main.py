@@ -2,6 +2,7 @@ import sys
 
 import numpy as np
 import random
+import math
 
 from numpy import ndarray
 
@@ -11,7 +12,7 @@ goal_state= np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
 current_state = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
 maximum_nodes = 0
 
-random.seed(142)  # initializing Python's RNG  #342
+random.seed(342)  # initializing Python's RNG  #342
 
 
 def interpreter(filename):
@@ -273,7 +274,7 @@ def heuristic_one(node):
     while i < cur_state[0].size:
         j = 0
         while j < cur_state[:, 0].size:
-            if cur_state[i][j] != goal_state[i][j]:
+            if (cur_state[i][j] != goal_state[i][j]) & (cur_state[i][j] != 0):
                 num_misplaced += 1
             j += 1
         i += 1
@@ -287,17 +288,20 @@ def heuristic_two(node):
     """goal_state_coordinates is an array containing the coordinates of the tiles in the goal state matrix.  So, for
     example, goal_state_coordinates(4) returns the i,jth coordinates of tile 4 in the goal state: (1,1)."""
     goal_state_coordinates = [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
-    sum_of_distances = 0
+    sum_of_distances = 0.0
 
     cur_state = np.copy(node.state)
     i = 0
     while i < cur_state[0].size:
         j = 0
         while j < cur_state[:, 0].size:
-            # this calculates the Manhattan distance, not the Euclidean distance, because it was unspecified.
-            if(i != 0) & (j != 0):
-                sum_of_distances += ((abs(i - goal_state_coordinates[current_state[i][j]][0])) + (
-                    abs(j - goal_state_coordinates[current_state[i][j]][1])))
+            # this calculates the Euclidean distance in between a tile's current position and its position in the goal state
+            cur_tile = cur_state[i][j]
+            if not cur_tile == 0:
+                x_dist = float(abs(i - goal_state_coordinates[cur_tile][0]))
+                y_dist = float(abs(j - goal_state_coordinates[cur_tile][1]))
+                euclid_dist = math.sqrt(x_dist**2.0 + y_dist**2.0)
+                sum_of_distances += euclid_dist
             j += 1
         i += 1
     return sum_of_distances
@@ -362,7 +366,6 @@ class a_star_priority_queue:
             return node.get_path_length() + heuristic_two(node)
 
 
-
 class beam_priority_queue:
     def __init__(self):
         self.queue = []
@@ -374,7 +377,7 @@ class beam_priority_queue:
         minimum_index = 0
         for i in range(len(self.queue)):
             # comparing evaluation functions:
-            if heuristic_one(self.queue[i]) < heuristic_one(self.queue[minimum_index]):
+            if heuristic_two(self.queue[i]) < heuristic_two(self.queue[minimum_index]):
                 minimum_index = i
         returnable = self.queue[minimum_index]
         del self.queue[minimum_index]
@@ -457,7 +460,6 @@ def solve_a_star(heuristic):
                 if num_nodes > maximum_nodes:
                     # raise exceptions.node_error
                     print("A* Failure: Maximum number of nodes surpassed")
-                    print(repr(frontier.evaluation_function(frontier.pop())))
                     print(" ")
                     return
             except exceptions.move_impossible_error:
@@ -524,12 +526,7 @@ def solve_beam(k):
 
 
 if __name__ == '__main__':
-    # interpreter()
     # interpreter("P1-test.txt")
-    interpreter("P1_jkm100_test_file.txt")
-
-# max_nodes(1000)
-# randomize_state(9)
-# print_state()
-# solve_beam(8)
+    # interpreter("P1_jkm100_test_file.txt")
+    interpreter(str(sys.argv[1]))
 
