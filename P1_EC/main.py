@@ -10,6 +10,8 @@ from numpy import ndarray
 
 import exceptions
 
+# row index denotes side, column index denotes square on side
+
 goal_state = np.array([
     ['w', 'w', 'w', 'w'],
     ['g', 'g', 'g', 'g'],
@@ -80,20 +82,6 @@ def interpreter(filename):
                 print_state()
             else:
                 raise exceptions.command_error
-
-
-def print_state():  # prints the current puzzle state represented by characters
-    print("Current State:")
-    currentStateReadable = np.array([['b', 'b', 'b'], ['b', 'b', 'b'], ['b', 'b', 'b']])
-    i = 0
-    while i < current_state[0].size:
-        j = 0
-        while j < current_state[:, 0].size:
-            currentStateReadable[i][j] = int_to_string_representation(current_state[i][j])
-            j += 1
-        i += 1
-    print(currentStateReadable)
-    print(" ")
 
 
 def move_node(direction, node):
@@ -503,15 +491,38 @@ def move(direction):
     """
     global current_state
     temp_state = np.copy(current_state)
-    if direction == 'U':
-        temp_state[1, 1] = current_state[1, 4]
-        temp_state[1, 2] = current_state[1, 1]
-        temp_state[1, 3] = current_state[1, 2]
-        temp_state[1, 4] = current_state[1, 3]
+    if direction[0] == 'U':
+        if len(direction) == 1:
+            num_rotations = 1
+        elif direction[1] == '2':
+            num_rotations = 2
+        elif direction[1] == 'i':
+            num_rotations = 3
+        i = 0
+        while i < num_rotations:
+            temp_state[0, 0] = current_state[0, 3]
+            temp_state[0, 1] = current_state[0, 0]
+            temp_state[0, 2] = current_state[0, 1]
+            temp_state[0, 3] = current_state[0, 2]
+            temp_state[1, 3] = current_state[2, 2]
+            temp_state[1, 2] = current_state[2, 1]
+            temp_state[2, 2] = current_state[3, 1]
+            temp_state[2, 1] = current_state[3, 0]
+            temp_state[3, 1] = current_state[4, 0]
+            temp_state[3, 0] = current_state[4, 3]
+            temp_state[4, 0] = current_state[1, 3]
+            temp_state[4, 3] = current_state[1, 2]
+            i += 1
+        current_state = np.copy(temp_state)
+        return 1
+    return 0
 
+def print_state():
+    print("Current State:")
 
 # if __name__ == '__main__':
     # interpreter("P1-test.txt")
     # interpreter("P1_jkm100_test_file.txt")
     # interpreter(str(sys.argv[1]))
 
+print_state()
