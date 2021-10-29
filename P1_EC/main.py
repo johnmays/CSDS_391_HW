@@ -500,29 +500,43 @@ def move(direction):
             num_rotations = 3
         i = 0
         while i < num_rotations:
-            temp_state[0, 0] = current_state[0, 3]
-            temp_state[0, 1] = current_state[0, 0]
-            temp_state[0, 2] = current_state[0, 1]
+            temp_state[0, 0] = current_state[0, 1]
+            temp_state[0, 1] = current_state[0, 3]
+            temp_state[0, 2] = current_state[0, 0]
             temp_state[0, 3] = current_state[0, 2]
+            temp_state[1, 1] = current_state[2, 3]
             temp_state[1, 3] = current_state[2, 2]
-            temp_state[1, 2] = current_state[2, 1]
-            temp_state[2, 2] = current_state[3, 1]
-            temp_state[2, 1] = current_state[3, 0]
-            temp_state[3, 1] = current_state[4, 0]
-            temp_state[3, 0] = current_state[4, 3]
-            temp_state[4, 0] = current_state[1, 3]
-            temp_state[4, 3] = current_state[1, 2]
+            temp_state[2, 3] = current_state[3, 2]
+            temp_state[2, 2] = current_state[3, 0]
+            temp_state[3, 2] = current_state[4, 0]
+            temp_state[3, 0] = current_state[4, 1]
+            temp_state[4, 0] = current_state[1, 1]
+            temp_state[4, 1] = current_state[1, 3]
             i += 1
-        current_state = np.copy(temp_state)
+            current_state = np.copy(temp_state)
+            print('executed')
         return 1
     return 0
 
 def print_state():
-    print("Current State:")
-
+    print("Current State:") # 4 spaces
+    print("     " + current_state[0, 0] + "     ")
+    print(current_state[0, 1] + "         " + current_state[0, 2])
+    print(current_state[1, 1] + "    " + current_state[0, 3] + "    " + current_state[2, 2])
+    print(current_state[1, 2] + "   " + current_state[1, 3] + " " + current_state[2, 3] + "   " + current_state[2, 1])
+    print("    " + current_state[1, 0] + " " + current_state[2, 0] + "    ")
+    print("        ")
+    print("    " + current_state[4, 0] + " " + current_state[3, 0] + "    ")
+    print(current_state[4, 1] + "   " + current_state[4, 3] + " " + current_state[3, 3] + "   " + current_state[3, 2])
+    print(current_state[4, 2] + "    " + current_state[5, 3] + "    " + current_state[3, 1])
+    print(current_state[5, 2] + "         " + current_state[5, 1])
+    print("     " + current_state[5, 0] + "     ")
 # if __name__ == '__main__':
     # interpreter("P1-test.txt")
     # interpreter("P1_jkm100_test_file.txt")
     # interpreter(str(sys.argv[1]))
 
+print_state()
+move('U2')
+move('U2')
 print_state()
