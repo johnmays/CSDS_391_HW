@@ -155,8 +155,8 @@ def plot_2_a(bag):
 def plot_2_c(bag):
     priors = [0.1, 0.2, 0.4, 0.2, 0.1]
 
-    num_trials = 100  # rows
-    num_observations = 250  # columns
+    num_trials = 2500  # rows
+    num_observations = 100  # columns
     d = np.empty((num_trials, num_observations), dtype=str)
 
     posteriors_h1 = np.empty((num_trials, num_observations+1), dtype=float)
@@ -222,32 +222,32 @@ def plot_2_c(bag):
             posteriors_h4[i, k + 1] = posteriors_vector[3]
             posteriors_h5[i, k + 1] = posteriors_vector[4]
 
-    standard_deviations_h1 = []
-    standard_deviations_h2 = []
-    standard_deviations_h3 = []
-    standard_deviations_h4 = []
-    standard_deviations_h5 = []
+    averages_h1 = []
+    averages_h2 = []
+    averages_h3 = []
+    averages_h4 = []
+    averages_h5 = []
     for i in range(len(posteriors_h1[0])):
-        standard_deviations_h1.append(np.std(posteriors_h1[:, i]))
-        standard_deviations_h2.append(np.std(posteriors_h2[:, i]))
-        standard_deviations_h3.append(np.std(posteriors_h3[:, i]))
-        standard_deviations_h4.append(np.std(posteriors_h4[:, i]))
-        standard_deviations_h5.append(np.std(posteriors_h5[:, i]))
+        averages_h1.append(np.average(posteriors_h1[:, i]))
+        averages_h2.append(np.average(posteriors_h2[:, i]))
+        averages_h3.append(np.average(posteriors_h3[:, i]))
+        averages_h4.append(np.average(posteriors_h4[:, i]))
+        averages_h5.append(np.average(posteriors_h5[:, i]))
 
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
-    ax.set_ylim([0.00, 0.35])
+    # ax.set_ylim([0.00, 0.35])
     # ax.spines['bottom'].set_position('zero')
     # ax.xaxis.set_ticks_position('bottom')
     # ax.yaxis.set_ticks_position('left')
     # ax.set_yticklabels([])
-    plt.plot(np.linspace(0, len(d[0]), len(d[0]) + 1), standard_deviations_h1, 'tab:orange', label='σ(p(h1|d))')
-    plt.plot(np.linspace(0, len(d[0]), len(d[0]) + 1), standard_deviations_h2, 'tab:green', label='σ(p(h2|d))')
-    plt.plot(np.linspace(0, len(d[0]), len(d[0]) + 1), standard_deviations_h3, 'tab:blue', label='σ(p(h3|d))')
-    plt.plot(np.linspace(0, len(d[0]), len(d[0]) + 1), standard_deviations_h4, 'tab:grey', label='σ(p(h4|d))')
-    plt.plot(np.linspace(0, len(d[0]), len(d[0]) + 1), standard_deviations_h5, 'tab:brown', label='σ(p(h5|d))')
-    plt.title("Standard deviations of the posteriors given data from {} bag".format(bag))
-    plt.ylabel("σ")
+    plt.plot(np.linspace(0, len(d[0]), len(d[0]) + 1), averages_h1, 'tab:orange', label='p(h1|d)')
+    plt.plot(np.linspace(0, len(d[0]), len(d[0]) + 1), averages_h2, 'tab:green', label='p(h2|d)')
+    plt.plot(np.linspace(0, len(d[0]), len(d[0]) + 1), averages_h3, 'tab:blue', label='p(h3|d)')
+    plt.plot(np.linspace(0, len(d[0]), len(d[0]) + 1), averages_h4, 'tab:grey', label='p(h4|d)')
+    plt.plot(np.linspace(0, len(d[0]), len(d[0]) + 1), averages_h5, 'tab:brown', label='p(h5|d)')
+    plt.title("Average Posteriors of Hypotheses given data from {} bag".format(bag))
+    plt.ylabel("Average posterior probability of hypothesis")
     plt.xlabel("Number of observations in d vector")
     plt.legend()
     plt.show()
