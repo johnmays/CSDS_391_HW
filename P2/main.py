@@ -35,5 +35,12 @@ def output_1e():
 
 # Part 2:
 
-mean_squared_error = part_two.mse(X, m, b, species)
-print(mean_squared_error)
+def output_2b():
+    mean_squared_error = part_two.mse(X, m, b, species)
+    print(mean_squared_error)
+    m_bad = np.array([1.0, 2.1])
+    b_bad = -6
+    part_two.plot_iris_data_with_two_decision_boundaries(petal_length, petal_width, species, m, b, m_bad, b_bad)
+    mean_squared_error = part_two.mse(X, m_bad, b_bad, species)
+    print(mean_squared_error)
+
