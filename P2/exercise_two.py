@@ -1,4 +1,4 @@
-import part_one
+import exercise_one
 import exceptions
 
 import numpy as np
@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 
 def mse(X, m, b, species):
-    iris_classifer = part_one.simple_classifier(m, b)
+    iris_classifer = exercise_one.simple_classifier(m, b)
     mse_sum = 0
     for i in range(len(X[0, :])):
         x_one = X[0, i]
@@ -42,8 +42,8 @@ def plot_iris_data_with_two_decision_boundaries(petal_length, petal_width, speci
     x_ones = np.linspace(0, 7.5, 75)
     x_twos_one = []
     x_twos_two = []
-    iris_decision_boundary_one = part_one.decision_boundary(m_one, b_one)
-    iris_decision_boundary_two = part_one.decision_boundary(m_two, b_two)
+    iris_decision_boundary_one = exercise_one.decision_boundary(m_one, b_one)
+    iris_decision_boundary_two = exercise_one.decision_boundary(m_two, b_two)
     for x_one in x_ones:
         x_twos_one.append(iris_decision_boundary_one.get_x_two(x_one))
         x_twos_two.append(iris_decision_boundary_two.get_x_two(x_one))

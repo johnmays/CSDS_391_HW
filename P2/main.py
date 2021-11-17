@@ -1,5 +1,5 @@
-import part_one
-import part_two
+import exercise_one
+import exercise_two
 import numpy as np
 import data_generator
 
@@ -18,29 +18,29 @@ X = data_generator.create_data_vectors(petal_length, petal_width)
 def output_1e():
 
     print("Unambiguously Versicolor:")
-    part_one.test_simple_classifier(0, petal_length, petal_width, species)
-    part_one.test_simple_classifier(10, petal_length, petal_width, species)
-    part_one.test_simple_classifier(30, petal_length, petal_width, species)
+    exercise_one.test_simple_classifier(0, petal_length, petal_width, species)
+    exercise_one.test_simple_classifier(10, petal_length, petal_width, species)
+    exercise_one.test_simple_classifier(30, petal_length, petal_width, species)
     print("Unambiguously Virginica:")
-    part_one.test_simple_classifier(50, petal_length, petal_width, species)
-    part_one.test_simple_classifier(70, petal_length, petal_width, species)
-    part_one.test_simple_classifier(90, petal_length, petal_width, species)
+    exercise_one.test_simple_classifier(50, petal_length, petal_width, species)
+    exercise_one.test_simple_classifier(70, petal_length, petal_width, species)
+    exercise_one.test_simple_classifier(90, petal_length, petal_width, species)
     print("Near the Decision Boundary:")
-    part_one.test_simple_classifier(56, petal_length, petal_width, species)
-    part_one.test_simple_classifier(69, petal_length, petal_width, species)
-    part_one.test_simple_classifier(33, petal_length, petal_width, species)
+    exercise_one.test_simple_classifier(56, petal_length, petal_width, species)
+    exercise_one.test_simple_classifier(69, petal_length, petal_width, species)
+    exercise_one.test_simple_classifier(33, petal_length, petal_width, species)
 
-    part_one.plot_select_iris_data_1e(petal_length, petal_width, species)
+    exercise_one.plot_select_iris_data_1e(petal_length, petal_width, species)
 
 
 # Part 2:
 
 def output_2b():
-    mean_squared_error = part_two.mse(X, m, b, species)
+    mean_squared_error = exercise_two.mse(X, m, b, species)
     print(mean_squared_error)
     m_bad = np.array([1.0, 2.1])
     b_bad = -6
-    part_two.plot_iris_data_with_two_decision_boundaries(petal_length, petal_width, species, m, b, m_bad, b_bad)
-    mean_squared_error = part_two.mse(X, m_bad, b_bad, species)
+    exercise_two.plot_iris_data_with_two_decision_boundaries(petal_length, petal_width, species, m, b, m_bad, b_bad)
+    mean_squared_error = exercise_two.mse(X, m_bad, b_bad, species)
     print(mean_squared_error)
 
