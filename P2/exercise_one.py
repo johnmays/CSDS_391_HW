@@ -1,3 +1,5 @@
+import exceptions
+
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -35,11 +37,19 @@ def plot_iris_data(petal_length, petal_width, species):
 
 class decision_boundary:
     """Helper function to plot the decision boundary"""
-    def __init__(self, m, b):
-        self.m = m
-        self.b = b
+    """either takes (w vector), or (m vector and b) as input"""
+    def __init__(self, **kwargs):
+        self.w = np.zeros(3)
+        if len(kwargs) == 2:
+            self.w[0] = kwargs['b']
+            self.w[1:3] = kwargs['m']
+        elif len(kwargs) == 1:
+            self.w = kwargs['w']
+        else:
+            raise exceptions.insufficient_arguments_error
+
     def get_x_two(self, x_one):
-        x_two = -(self.m[0]/self.m[1])*x_one-(self.b/self.m[1])
+        x_two = -(self.w[1]/self.w[2])*x_one-(self.w[0]/self.w[2])
         return x_two
 
 
@@ -58,7 +68,7 @@ def plot_iris_data_with_decision_boundary(petal_length, petal_width, species, m,
     # drawing the line
     x_ones = np.linspace(0, 7.5, 75)
     x_twos = []
-    iris_decision_boundary = decision_boundary(m, b)
+    iris_decision_boundary = decision_boundary(m=m, b=b)
     for x_one in x_ones:
         x_twos.append(iris_decision_boundary.get_x_two(x_one))
 
@@ -69,7 +79,7 @@ def plot_iris_data_with_decision_boundary(petal_length, petal_width, species, m,
     ax.scatter(versicolor_petal_length, versicolor_petal_width, color='indigo', alpha=0.5, label='Versicolor')
     ax.scatter(virginica_petal_length, virginica_petal_width, color='orchid', alpha=0.5, label='Virginica')
     plt.plot(x_ones, x_twos, color='black')
-    plt.fill_between(x_ones, x_twos, np.max(x_twos), color='orchid', alpha=0.1)
+    plt.fill_between(x_ones, x_twos, 2.6, color='orchid', alpha=0.1)
     plt.fill_between(x_ones, x_twos, color='indigo', alpha=0.15)
     plt.title("Iris Data")
     plt.ylabel("Petal Width (cm) [x\u2082]")
@@ -81,14 +91,26 @@ def plot_iris_data_with_decision_boundary(petal_length, petal_width, species, m,
 
 
 class simple_classifier:
-    def __init__(self, m, b):
-        self.m = m
-        self.b = b
+    def __init__(self, **kwargs):
+        self.w = np.zeros(3)
+        if len(kwargs) == 2:
+            self.w[0] = kwargs['b']
+            self.w[1:3] = kwargs['m']
+        elif len(kwargs) == 1:
+            self.w = kwargs['w']
+        else:
+            raise exceptions.insufficient_arguments_error
 
     def classify(self, x_one, x_two):
-        y = self.m[0]*x_one + self.m[1]*x_two + self.b
+        y = self.w[0] + self.w[1]*x_one + self.w[2]*x_two
         sigmoid = 1 / (1 + np.exp(-y))
         return sigmoid
+
+    def get_weights(self):
+        return self.w
+
+    def set_weights(self, w):
+        self.w = w
 
 
 def surface_plot_input_space(m, b):
@@ -97,7 +119,7 @@ def surface_plot_input_space(m, b):
 
     fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
     x_one, x_two = np.meshgrid(x_one, x_two)
-    iris_data_classifier = simple_classifier(m, b)
+    iris_data_classifier = simple_classifier(m=m, b=b)
     sigmoid = iris_data_classifier.classify(x_one, x_two)
     ax.plot_surface(x_one, x_two, sigmoid, cmap=mpl.cm.RdPu, linewidth=0, antialiased=False)
     ax.set_xlim(0, 7.0)
@@ -112,7 +134,7 @@ def surface_plot_input_space(m, b):
 
 
 def test_simple_classifier(index, petal_length, petal_width, species, m, b):
-    iris_classifier = simple_classifier(m, b)
+    iris_classifier = simple_classifier(m=m, b=b)
     classifier_output = iris_classifier.classify(petal_length[index], petal_width[index])
     classifier_class = ""
     if classifier_output < 0.5:
@@ -139,7 +161,7 @@ def plot_select_iris_data_1e(petal_length, petal_width, species, m, b):
 
     x_ones = np.linspace(0, 7.5, 75)
     x_twos = []
-    iris_decision_boundary = decision_boundary(m, b)
+    iris_decision_boundary = decision_boundary(m=m, b=b)
     for x_one in x_ones:
         x_twos.append(iris_decision_boundary.get_x_two(x_one))
     fig = plt.figure()

@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 
 def mse(X, m, b, species):
-    iris_classifer = exercise_one.simple_classifier(m, b)
+    iris_classifer = exercise_one.simple_classifier(m=m, b=b)
     mse_sum = 0
     for i in range(len(X[0, :])):
         x_one = X[0, i]
@@ -50,7 +50,6 @@ def gradient_mse(X_augmented, w, species):
         gradient_sum[2] += -2 * (y - (1 / (1 + np.exp(-np.dot(w, x_vector))))) * (
                 np.exp(-np.dot(w, x_vector)) / (1 + np.exp(-np.dot(w, x_vector))) ** 2)*x_vector[2]
     return gradient_sum
-
 
 
 def plot_iris_data_with_two_decision_boundaries(petal_length, petal_width, species, m_one, b_one, m_two, b_two):
