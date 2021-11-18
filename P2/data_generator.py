@@ -32,4 +32,12 @@ def create_data_vectors(x_one, x_two):
         X[1, i] = x_two[i]
     return X  # a 2x(length) matrix with columns individual x vectors as columns
 
+def create_augmented_data_vectors(x_one, x_two):
+    X_augmented = np.zeros((3, len(x_one)))
+    for i in range(len(x_one)):
+        X_augmented[0, i] = 1
+        X_augmented[1, i] = x_one[i]
+        X_augmented[2, i] = x_two[i]
+    return X_augmented  # a 2x(length) matrix with columns individual x vectors as columns
+
 # def create_data_vectors(x_one, x_two, x_three, x_four):

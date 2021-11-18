@@ -88,10 +88,7 @@ class simple_classifier:
     def classify(self, x_one, x_two):
         y = self.m[0]*x_one + self.m[1]*x_two + self.b
         sigmoid = 1 / (1 + np.exp(-y))
-        if sigmoid <= 0.5:  # 2nd iris class: Versicolor
-            return 0
-        else:  # 3rd iris class: Virginica
-            return 1
+        return sigmoid
 
 
 def surface_plot_input_space(m, b):
@@ -100,9 +97,9 @@ def surface_plot_input_space(m, b):
 
     fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
     x_one, x_two = np.meshgrid(x_one, x_two)
-    y = m[0]*x_one+m[1]*x_two + b
-    sigmoid = 1 / (1 + np.exp(-y))
-    surf = ax.plot_surface(x_one, x_two, sigmoid, cmap=mpl.cm.RdPu, linewidth=0, antialiased=False)
+    iris_data_classifier = simple_classifier(m, b)
+    sigmoid = iris_data_classifier.classify(x_one, x_two)
+    ax.plot_surface(x_one, x_two, sigmoid, cmap=mpl.cm.RdPu, linewidth=0, antialiased=False)
     ax.set_xlim(0, 7.0)
     ax.set_ylim(0, 2.6)
     ax.set_zlim(0, 1.0)
@@ -118,12 +115,12 @@ def test_simple_classifier(index, petal_length, petal_width, species, m, b):
     iris_classifier = simple_classifier(m, b)
     classifier_output = iris_classifier.classify(petal_length[index], petal_width[index])
     classifier_class = ""
-    if classifier_output == 0:
+    if classifier_output < 0.5:
         classifier_class = "versicolor"
     else:
         classifier_class = "virginica"
 
-    print("Petal Length:", petal_length[index], ", Petal Width:", petal_width[index], ", True Class:", species[index], ", Simple Classifier Output:", classifier_output, "({cc})".format(cc=classifier_class))
+    print("Petal Length:", petal_length[index], ", Petal Width:", petal_width[index], ", True Class:", species[index], ", Simple Classifier Output:", round(classifier_output, 4), "({cc})".format(cc=classifier_class))
 
 
 def plot_select_iris_data_1e(petal_length, petal_width, species, m, b):
@@ -131,7 +128,7 @@ def plot_select_iris_data_1e(petal_length, petal_width, species, m, b):
     versicolor_petal_width = []
     virginica_petal_length = []
     virginica_petal_width = []
-    indices = [50, 60, 80, 100, 120, 140, 106, 119, 83]
+    indices = [0, 10, 30, 50, 70, 90, 56, 69, 33]
     for index in indices:
         if species[index] == 'versicolor':
             versicolor_petal_length.append(petal_length[index])

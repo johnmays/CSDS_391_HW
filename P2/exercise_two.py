@@ -26,6 +26,33 @@ def mse(X, m, b, species):
 
     return mse_sum/len(X[0, :])
 
+
+def gradient_mse(X_augmented, w, species):
+    """This function takes a 3xN np matrix of augmented X column vectors
+    (with x_1 = 1) and a 3x1 weights vector and computes the MSE gradient,
+    returning a 3x1 gradient sum vector"""
+    """Note: as of now, this function does not accurately pull from
+    'species' unless it is passed the correctly corresponding species vector"""
+    gradient_sum = np.zeros(3)
+    for i in range(len(X_augmented[0, :])):
+        x_vector = X_augmented[:, i]  # column data vector
+        y = None
+        if species[i] == "versicolor":
+            y = 0
+        elif species[i] == "virginica":
+            y = 1
+        else:
+            raise exceptions.unexpected_class_error
+        gradient_sum[0] += -2 * (y - (1 / (1 + np.exp(-np.dot(w, x_vector))))) * (
+                np.exp(-np.dot(w, x_vector)) / (1 + np.exp(-np.dot(w, x_vector))) ** 2)*1
+        gradient_sum[1] += -2 * (y - (1 / (1 + np.exp(-np.dot(w, x_vector))))) * (
+                np.exp(-np.dot(w, x_vector)) / (1 + np.exp(-np.dot(w, x_vector))) ** 2)*x_vector[1]
+        gradient_sum[2] += -2 * (y - (1 / (1 + np.exp(-np.dot(w, x_vector))))) * (
+                np.exp(-np.dot(w, x_vector)) / (1 + np.exp(-np.dot(w, x_vector))) ** 2)*x_vector[2]
+    return gradient_sum
+
+
+
 def plot_iris_data_with_two_decision_boundaries(petal_length, petal_width, species, m_one, b_one, m_two, b_two):
     versicolor_petal_length = []
     versicolor_petal_width = []
