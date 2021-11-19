@@ -53,22 +53,31 @@ class decision_boundary:
         return x_two
 
 
-def plot_iris_data_with_decision_boundary(petal_length, petal_width, species, m, b):
+def plot_iris_data_with_decision_boundary(petal_length, petal_width, species, fill=True, subtitle=None, **kwargs):
+    w = np.zeros(3)
+    if len(kwargs) == 2:  # can work with either (w) or (m and b)
+        w[0] = kwargs['b']
+        w[1:3] = kwargs['m']
+    elif len(kwargs) == 1:
+        w = kwargs['w']
+    else:
+        raise exceptions.insufficient_arguments_error
+
     versicolor_petal_length = []
     versicolor_petal_width = []
     virginica_petal_length = []
     virginica_petal_width = []
-    for l, w, s in zip(petal_length, petal_width, species):
+    for p_l, p_w, s in zip(petal_length, petal_width, species):
         if s == 'versicolor':
-            versicolor_petal_length.append(l)
-            versicolor_petal_width.append(w)
+            versicolor_petal_length.append(p_l)
+            versicolor_petal_width.append(p_w)
         elif s == 'virginica':
-            virginica_petal_length.append(l)
-            virginica_petal_width.append(w)
+            virginica_petal_length.append(p_l)
+            virginica_petal_width.append(p_w)
     # drawing the line
     x_ones = np.linspace(0, 7.5, 75)
     x_twos = []
-    iris_decision_boundary = decision_boundary(m=m, b=b)
+    iris_decision_boundary = decision_boundary(w=w)
     for x_one in x_ones:
         x_twos.append(iris_decision_boundary.get_x_two(x_one))
 
@@ -79,9 +88,13 @@ def plot_iris_data_with_decision_boundary(petal_length, petal_width, species, m,
     ax.scatter(versicolor_petal_length, versicolor_petal_width, color='indigo', alpha=0.5, label='Versicolor')
     ax.scatter(virginica_petal_length, virginica_petal_width, color='orchid', alpha=0.5, label='Virginica')
     plt.plot(x_ones, x_twos, color='black')
-    plt.fill_between(x_ones, x_twos, 2.6, color='orchid', alpha=0.1)
-    plt.fill_between(x_ones, x_twos, color='indigo', alpha=0.15)
-    plt.title("Iris Data")
+    if fill:
+        plt.fill_between(x_ones, x_twos, 2.6, color='orchid', alpha=0.1)
+        plt.fill_between(x_ones, x_twos, color='indigo', alpha=0.15)
+    if subtitle == None:
+        plt.title("Iris Data")
+    else:
+        plt.title("Iris Data: {st}".format(st=subtitle))
     plt.ylabel("Petal Width (cm) [x\u2082]")
     plt.xlabel("Petal Length (cm) [x\u2081]")
     plt.xlim(0, 7.5)
@@ -91,7 +104,7 @@ def plot_iris_data_with_decision_boundary(petal_length, petal_width, species, m,
 
 
 class simple_classifier:
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs):  # init with either (w) or (m and b)
         self.w = np.zeros(3)
         if len(kwargs) == 2:
             self.w[0] = kwargs['b']

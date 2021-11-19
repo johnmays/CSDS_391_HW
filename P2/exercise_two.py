@@ -3,6 +3,7 @@ import exceptions
 
 import numpy as np
 import matplotlib.pyplot as plt
+import math
 
 
 # Functions written in Part 2:
@@ -38,17 +39,21 @@ def gradient_mse(X_augmented, w, species):
         x_vector = X_augmented[:, i]  # column data vector
         y = None
         if species[i] == "versicolor":
-            y = 0
+            y = 0.0
         elif species[i] == "virginica":
-            y = 1
+            y = 1.0
         else:
             raise exceptions.unexpected_class_error
-        gradient_sum[0] += -2 * (y - (1 / (1 + np.exp(-np.dot(w, x_vector))))) * (
-                np.exp(-np.dot(w, x_vector)) / (1 + np.exp(-np.dot(w, x_vector))) ** 2)*1
-        gradient_sum[1] += -2 * (y - (1 / (1 + np.exp(-np.dot(w, x_vector))))) * (
-                np.exp(-np.dot(w, x_vector)) / (1 + np.exp(-np.dot(w, x_vector))) ** 2)*x_vector[1]
-        gradient_sum[2] += -2 * (y - (1 / (1 + np.exp(-np.dot(w, x_vector))))) * (
-                np.exp(-np.dot(w, x_vector)) / (1 + np.exp(-np.dot(w, x_vector))) ** 2)*x_vector[2]
+
+        sigmoid = 1 / (1 + math.exp(-np.dot(w, x_vector)))
+        # print(-np.dot(w, x_vector))
+        gradient_sum[0] += -2 * (y - sigmoid) * (sigmoid * (1 - sigmoid)) * x_vector[0]
+        gradient_sum[1] += -2 * (y - sigmoid) * (sigmoid * (1 - sigmoid)) * x_vector[1]
+        gradient_sum[2] += -2 * (y - sigmoid) * (sigmoid * (1 - sigmoid)) * x_vector[2]
+        # gradient_sum[1] += -2 * (y - (1 / (1 + math.exp(-np.dot(w, x_vector))))) * (
+        #         math.exp(-np.dot(w, x_vector)) / (1 + math.exp(-np.dot(w, x_vector))) ** 2)*x_vector[1]
+        # gradient_sum[2] += -2 * (y - (1 / (1 + math.exp(-np.dot(w, x_vector))))) * (
+        #         math.exp(-np.dot(w, x_vector)) / (1 + math.exp(-np.dot(w, x_vector))) ** 2)*x_vector[2]
     return gradient_sum
 
 

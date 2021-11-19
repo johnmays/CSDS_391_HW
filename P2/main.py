@@ -5,7 +5,7 @@ import numpy as np
 import data_generator
 
 m = np.array([0.6, 1.8])
-b = -4  # b = -5.73
+b = -5.73
 w = np.array([b, m[0], m[1]]).T
 
 # importing the data from the iris.csv file:
@@ -18,11 +18,14 @@ X = data_generator.create_data_vectors(petal_length, petal_width)
 X_augmented = data_generator.create_augmented_data_vectors(petal_length, petal_width)
 
 # HyperParameters
-step_size = 0.005
+step_size = 0.0025
 
 
 # Part 1:
 
+
+def output_1c():
+    exercise_one.plot_iris_data_with_decision_boundary(petal_length, petal_width, species, m=m, b=b)
 
 def output_1d():
     exercise_one.surface_plot_input_space(m, b)
@@ -62,17 +65,13 @@ def output_2b():
 def output_2e():
     w_new = np.copy(w)
     print(w_new)
-    exercise_one.plot_iris_data_with_decision_boundary(petal_length, petal_width, species, w_new[1:3], w_new[0])
+    exercise_one.plot_iris_data_with_decision_boundary(petal_length, petal_width, species, subtitle="First", w=w_new)
     d_w = exercise_two.gradient_mse(X_augmented, w_new, species)
     # print(w_new.shape)
     # print(d_w.shape)
     w_new = w_new - step_size*d_w
     print(w_new)
-    exercise_one.plot_iris_data_with_decision_boundary(petal_length, petal_width, species, w_new[1:3], w_new[0])
-    d_w = exercise_two.gradient_mse(X_augmented, w_new, species)
-    w_new = w_new - step_size * d_w
-    print(w_new)
-    exercise_one.plot_iris_data_with_decision_boundary(petal_length, petal_width, species, w_new[1:3], w_new[0])
+    exercise_one.plot_iris_data_with_decision_boundary(petal_length, petal_width, species, subtitle="Second", w=w_new)
 
 
 # Part 3:
@@ -81,12 +80,40 @@ def output_2e():
 def output_3a():
     iris_classifier = exercise_one.simple_classifier(w=w)
     print(iris_classifier.get_weights())
-    w_final = exercise_three.fit(iris_classifier, step_size, X_augmented, petal_length, petal_width, species, output=True)
+    w_final = exercise_three.fit(iris_classifier, step_size, X_augmented, petal_length, petal_width, species,
+                                 progress_output=True)
     print(w_final)
-    exercise_one.plot_iris_data_with_decision_boundary(petal_length, petal_width, species, w_final[1:3], w_final[0])
 
+
+def output_3c():
+    w_random = exercise_three.random_weights()
+    # w_random = np.array([2.44080189, 13.73806801, -2.08559572])
+    print("Starting Vector:")
+    print(w_random)
+    print("MSE:")
+    print(exercise_two.mse(X, w_random[1:3], w_random[0], species))
+    iris_classifier = exercise_one.simple_classifier(w=w_random)
+    print(iris_classifier.get_weights())
+    w_final = exercise_three.fit(iris_classifier, step_size, X_augmented, petal_length, petal_width, species,
+                                 progress_output=True)
+    print(w_final)
+
+
+# Put commands here:
+
+# output_1c()
+
+# output_1d()
+
+# output_1e()
+
+# output_2b()
 
 # output_2e()
 
-output_3a()
+# output_3a()
+
+# output_3c()
+
+
 

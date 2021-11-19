@@ -3,10 +3,12 @@ import exercise_two
 
 import numpy as np
 import matplotlib.pyplot as plt
+import math
+import random
 
 
-def fit(classifier, step_size, X_augmented, petal_length, petal_width, species, output=False):
-    threshold = 0.5
+def fit(classifier, step_size, X_augmented, petal_length, petal_width, species, progress_output=False):
+    threshold = 0.25
     gradient = 0
     previous_gradient = 0
 
@@ -16,29 +18,46 @@ def fit(classifier, step_size, X_augmented, petal_length, petal_width, species, 
     mse_store = []
     while True:
         num_iterations += 1  # for graphing
+        # form a batch:
+        # X_augmented_batch = np.copy(X_augmented)
+        # species_batch = species.copy()
+        # i = 0
+        # while i < len(X_augmented_batch[0, :]):
+        #     if (random.random() < 0.1) & (i != len(X_augmented_batch[0, :])):  # batch should contain about 90% of the data
+        #         X_augmented_batch = np.delete(X_augmented_batch, i, axis=1)
+        #         species_batch.pop(i)
+        #     i += 1
         gradient = exercise_two.gradient_mse(X_augmented, classifier.get_weights(), species)
         new_weights = classifier.get_weights()-step_size*gradient
-        if output:
-            mse_store.append(exercise_two.mse(X_augmented[1:, :], new_weights[1:3], new_weights[0], species))  # for graphing
+        if progress_output:
+            mse_store.append(exercise_two.mse(X_augmented[1:3, :], new_weights[1:3], new_weights[0], species))  # for graphing
         weights_store.append(new_weights)  # for graphing
         classifier.set_weights(new_weights)
         if np.linalg.norm(gradient) < threshold:  # convergence condition
             break
         previous_gradient = gradient
     print(num_iterations)
-    if output:  # is true
-        plot_loss_over_iterations(mse_store, num_iterations)
-        plot_decision_boundaries_over_iterations(petal_length, petal_width, species, weights_store, num_iterations, skip_size=2)
+    if progress_output:  # is true
+        plot_locations = {'Initial': 0, 'Middle': math.floor(num_iterations/2), 'Final': num_iterations-1}
+        for key in plot_locations:
+            exercise_one.plot_iris_data_with_decision_boundary(petal_length, petal_width, species, fill=False, subtitle=key,
+                                                               w=weights_store[plot_locations[key]])
+            if key != 'Initial':
+                plot_loss_over_iterations(mse_store[0:plot_locations[key]], plot_locations[key], subtitle=key)
 
     return classifier.get_weights()
 
-def plot_loss_over_iterations(mse_store, num_iterations):
+
+def plot_loss_over_iterations(mse_store, num_iterations, subtitle = None):
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
     plt.plot(range(1, num_iterations+1), mse_store, color='indigo')
-    plt.title("Mean Squared Error (Loss) vs. Num. Iterations")
+    if subtitle == None:
+        plt.title("Mean Squared Error (Loss) vs. Num. Iterations")
+    else:
+        plt.title("Mean Squared Error (Loss) vs. Num. Iterations: {st}".format(st=subtitle))
     plt.ylabel("Mean Squared Error")
     plt.xlabel("Number of Iterations")
     # plt.xlim(0, 7.5)
@@ -86,3 +105,24 @@ def plot_decision_boundaries_over_iterations(petal_length, petal_width, species,
     plt.legend()
 
     plt.show()
+
+
+def random_weights():
+    x_one_min = 4.0
+    x_one_max = 30.0
+    x_two_min = 0.9
+    x_two_max = 2.5
+    """My way of ensuring that the random weights still plot is by making sure one of the intercepts is within its
+    range:"""
+    w_random = np.zeros(3)
+    x_two_intercept = random.uniform(x_two_min-1, x_two_max+1)
+    w_random[0] = random.uniform(-10, -1)
+    w_random[2] = -w_random[0]/x_two_intercept
+    if w_random[2] > 0:
+        w_random[1] = random.uniform(abs(w_random[0])/x_one_max, abs(w_random[0])/x_one_min)
+    else:
+        w_random[1] = -random.uniform(abs(w_random[0]) / x_one_max, abs(w_random[0]) / x_one_min)
+    # multiplying by a random scalar factor:
+    # w_random = w_random * random.uniform(1, 10)
+    return w_random
+
