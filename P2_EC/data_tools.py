@@ -1,6 +1,8 @@
 import exceptions
 import csv
 import numpy as np
+import random
+import math
 
 
 def iris_data_generator(data_path, full=False):
@@ -37,21 +39,21 @@ def create_data_vectors(*args):
     if len(args) == 2:
         x_one = args[0]
         x_two = args[1]
-        X = np.zeros((2, len(x_one)))
+        X = np.zeros((len(x_one), 2))
         for i in range(len(x_one)):
-            X[0, i] = x_one[i]
-            X[1, i] = x_two[i]
+            X[i, 0] = x_one[i]
+            X[i, 1] = x_two[i]
     elif len(args) == 4:
         x_one = args[0]
         x_two = args[1]
         x_three = args[2]
         x_four = args[3]
-        X = np.zeros((4, len(x_one)))
+        X = np.zeros((len(x_one), 4))
         for i in range(len(x_one)):
-            X[0, i] = x_one[i]
-            X[1, i] = x_two[i]
-            X[2, i] = x_three[i]
-            X[3, i] = x_four[i]
+            X[i, 0] = x_one[i]
+            X[i, 1] = x_two[i]
+            X[i, 2] = x_three[i]
+            X[i, 3] = x_four[i]
     else:
         raise exceptions.insufficient_arguments_error
     return X  # a 2x(length) matrix with columns individual x vectors as columns
@@ -64,8 +66,6 @@ def create_augmented_data_vectors(x_one, x_two):
         X_augmented[1, i] = x_one[i]
         X_augmented[2, i] = x_two[i]
     return X_augmented  # a 2x(length) matrix with columns individual x vectors as columns
-
-# def create_data_vectors(x_one, x_two, x_three, x_four):
 
 
 def one_hot(category_vector):
@@ -83,5 +83,27 @@ def one_hot(category_vector):
                 one_hot_vector.append(0)
         Y.append(one_hot_vector)
     return Y
+
+
+def data_split(X, Y, split_percent=0.5):
+    """Split one will contain split_percent*100% of the data in random order"""
+    X_split_one = []
+    Y_split_one = []
+    X_split_two = []
+    Y_split_two = []
+
+    data_indices = []
+    for index in range(len(Y)):  # creates a list of all of the indices of entries in the dataset
+        data_indices.append(index)
+    # Creating the first split based upon random selections:
+    while len(data_indices) > (1-split_percent)*len(Y):
+        index = data_indices.pop(math.floor(random.random()*len(data_indices)))
+        X_split_one.append(X[index])
+        Y_split_one.append(Y[index])
+    # Creating the second split based upon what's left:
+    for index in data_indices:
+        X_split_two.append(X[index])
+        Y_split_two.append(Y[index])
+    return X_split_one, Y_split_one, X_split_two, Y_split_two
 
 
