@@ -1,7 +1,6 @@
 import exercise_one
 import exercise_two
 import exercise_three
-import exercise_four
 import numpy as np
 import data_generator
 
@@ -117,11 +116,5 @@ def output_3c():
 # output_3c()
 
 
-# Code for Exercise Four Below:
-
-# re-importing the full dataset from the iris.csv file:
-sepal_length, sepal_width, petal_length, petal_width, species = data_generator.iris_data_generator('data/irisdata.csv', full=True)
-X = data_generator.create_data_vectors(sepal_length, sepal_width, petal_length, petal_width)
-Y = data_generator.one_hot(species)
 
 
