@@ -82,6 +82,7 @@ def one_hot(category_vector):
             else:
                 one_hot_vector.append(0)
         Y.append(one_hot_vector)
+    Y = np.asarray(Y)
     return Y
 
 
@@ -104,6 +105,10 @@ def data_split(X, Y, split_percent=0.5):
     for index in data_indices:
         X_split_two.append(X[index])
         Y_split_two.append(Y[index])
+    X_split_one = np.asarray(X_split_one)
+    X_split_two = np.asarray(X_split_two)
+    Y_split_one = np.asarray(Y_split_one)
+    Y_split_two = np.asarray(Y_split_two)
     return X_split_one, Y_split_one, X_split_two, Y_split_two
 
 
